@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import { Card } from 'react-bootstrap'
 import { Link} from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllProducts } from '../../redux/slices/productSlice'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBackward, faForward } from '@fortawesome/free-solid-svg-icons'
 
 
 
@@ -13,16 +15,31 @@ function Home() {
 
   const dispatch =useDispatch()
   const {loading,allProducts,error} = useSelector(state=>state.productReducer)
-  
+  const [currentPage,setCurrentPage] = useState(1)
+  const productsPerPage =8
+  const totalPages = Math.ceil( allProducts.length/productsPerPage)
   // console.log(allProducts)
+  const pageItemLastIndex = currentPage * productsPerPage
+  const pageItemStartIndex = pageItemLastIndex - productsPerPage
+  const visibleProductsArray= allProducts?.slice(pageItemStartIndex,pageItemLastIndex)
 
+  const navigateNext = () =>{
+    if(currentPage!=totalPages){
+      setCurrentPage(currentPage+1)
+    }
+  }
+  const navigatePrevious = () =>{
+    if(currentPage!=1){
+      setCurrentPage(currentPage-1)
+    }
+  }
   useEffect(()=>{
     dispatch(getAllProducts())
   },[])
 
   return (
     <>
-      <Header/>
+      <Header insideHome={true}/>
       <div className='container py-5 '>
         {
           loading?
@@ -31,7 +48,7 @@ function Home() {
           <div className="row my-5">
           {
             allProducts?.length>0?
-              allProducts?.map(product=>(
+              visibleProductsArray?.map(product=>(
               <div key={product?.id} className="col-md-3 mb-2">
                 <Card>
                   <Card.Img height={'250px'} variant="top" src={product?.thumbnail} />
@@ -46,8 +63,14 @@ function Home() {
               :
               <p className='fs-5 fw-bold my-5'>Product Not Found</p>
           }
+          <div className='my-3 text-center '>
+            <button onClick={()=>navigatePrevious()} className='btn'> <FontAwesomeIcon icon={faBackward}/> 
+            </button>
+            <span className='fw-bolder'>{currentPage} of {totalPages}</span>
+            <button onClick={()=>navigateNext()} className='btn'> <FontAwesomeIcon icon={faForward}/> 
+            </button>   
           </div>
-          
+          </div>
         }
 
       </div>
